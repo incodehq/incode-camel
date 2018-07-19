@@ -251,6 +251,15 @@ language governing permissions and limitations under the License.
             <version>${incode-platform.version}</version>
         </dependency>
 
+
+        <!-- test -->
+        <dependency>
+            <groupId>org.isisaddons.module.publishmq</groupId>
+            <artifactId>isis-module-publishmq-dom-servicespi</artifactId>
+            <version>${incode-platform.version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -313,13 +322,6 @@ language governing permissions and limitations under the License.
                 </property>
             </activation>
             <dependencies>
-
-                <!-- camel -->
-                <dependency>
-                    <groupId>org.isisaddons.module.publishmq</groupId>
-                    <artifactId>isis-module-publishmq-dom-camel</artifactId>
-                    <version>${incode-platform.version}</version>
-                </dependency>
 
                 <!-- camel -->
                 <dependency>

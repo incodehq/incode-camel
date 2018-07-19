@@ -2,4 +2,3 @@
 
 This is an example webapp which bootstraps Camel to consume events published via PublishMq service to an ActiveMQ event bus.
 
-TODO: need to decouple to use a tcp:// broker.
