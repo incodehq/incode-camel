@@ -1,5 +1,6 @@
 package org.incode.example.camel.processor.util;
 
+import java.io.StringReader;
 import java.util.Map;
 import java.util.Optional;
 
@@ -7,6 +8,7 @@ import com.google.common.collect.Maps;
 
 import org.apache.camel.Message;
 
+import org.apache.isis.applib.util.JaxbUtil;
 import org.apache.isis.schema.common.v1.OidDto;
 import org.apache.isis.schema.ixn.v1.InteractionDto;
 import org.apache.isis.schema.ixn.v1.MemberExecutionDto;
@@ -44,7 +46,12 @@ public class MessageUtil {
     }
 
     public static <T> T getBody(final Message message, final Class<T> dtoClass) {
-        return (T) message.getBody();
+        final Object body = message.getBody();
+        if(body instanceof String && dtoClass != String.class) {
+            final String bodyStr = (String) body;
+            return JaxbUtil.fromXml(new StringReader(bodyStr), dtoClass);
+        }
+        return (T) body;
     }
 
     public static InteractionDto interactionFrom(final Message message) {

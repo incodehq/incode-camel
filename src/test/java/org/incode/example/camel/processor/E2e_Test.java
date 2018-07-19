@@ -1,15 +1,18 @@
 package org.incode.example.camel.processor;
 
+import java.io.StringReader;
+import java.net.URL;
 import java.util.HashMap;
-import java.util.UUID;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
+import com.google.common.io.Resources;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import org.apache.isis.applib.util.JaxbUtil;
 import org.apache.isis.schema.ixn.v1.InteractionDto;
-import org.apache.isis.schema.ixn.v1.MemberExecutionDto;
 
 import org.isisaddons.module.publishmq.dom.servicespi.PublisherServiceUsingActiveMq;
 
@@ -36,16 +39,11 @@ public class E2e_Test {
     @Test
     public void publish() throws Exception {
 
-        final InteractionDto x = new InteractionDto();
-        x.setTransactionId(UUID.randomUUID().toString());
-        x.setExecution(new MemberExecutionDto() {
-            @Override
-            public int getSequence() {
-                return 1;
-            }
-        });
+        final URL resource = Resources.getResource(getClass(), "InteractionDto.xml");
+        final String s = Resources.toString(resource, Charsets.UTF_8);
+        final InteractionDto dto = JaxbUtil.fromXml(new StringReader(s), InteractionDto.class);
 
-        service.republish(x);
+        service.republish(dto);
     }
 
 

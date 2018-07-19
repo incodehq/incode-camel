@@ -2,3 +2,129 @@
 
 This is an example webapp which bootstraps Camel to consume events published via PublishMq service to an ActiveMQ event bus.
 
+The webapp sets up an ActiveMQ queue accessible via `tcp://localhost:61616`, and sets up a Camel route to consume from that.
+
+Within the Camel route it defines a single `HelloWorldProcessor` that will just print to stdout (of the webapp) for any `InteractionDto` objects that are published.
+
+It also defines a simple E2E test to play the role of an Apache Isis app, configured to use the http://platform.incode.org/modules/spi/publishmq/spi-publishmq.html[PublishMQ] publisher service.
+
+
+== Build
+
+Build using:
+
+[source]
+----
+mvn clean install
+----
+
+== Camel webapp
+
+Run using:
+
+[source]
+----
+mvn jetty:run
+----
+
+This set up the `HelloWorldProcessor`:
+
+[source,java]
+----
+public class HelloWorldProcessor extends ProcessorAbstract {
+
+    @Override
+    public void process(final Exchange exchange) throws Exception {
+        final InteractionDto interactionDto = MessageUtil.interactionFrom(exchange.getIn());
+
+        System.out.println(toXml(interactionDto));
+    }
+}
+----
+
+in a camel route:
+
+[source,xml]
+----
+<camelContext xmlns="http://camel.apache.org/schema/spring">
+
+    <route id="inToOutRoute" errorHandlerRef="myDeadLetterErrorHandler">
+        <from uri="activemq-broker:queue:memberInteractionsQueue"/>
+        <unmarshal>
+            <jaxb contextPath="org.apache.isis.schema.ixn.v1" prettyPrint="true"/>
+        </unmarshal>
+
+        <camel:process ref="addExchangeHeaders"/>
+        <camel:process ref="helloWorld"/>
+
+        <camel:to uri="stream:out"/>
+    </route>
+
+    ...
+
+</camelContext>
+----
+
+Note that there is no UI.
+However its configuration will have opened up an ActiveMq queue accessible over `tcp://localhost:61616`.
+
+
+== Test
+
+Run the `E2e_Test` class, eg using your IDE.
+This plays the role of an Apache Isis app:
+
+[source,java]
+----
+public class E2e_Test {
+
+    PublisherServiceUsingActiveMq service;
+
+    @Before
+    public void setUp() throws Exception {
+
+        assumeThat(System.getProperty("e2e"), is(notNullValue()));
+
+        service = new PublisherServiceUsingActiveMq();
+        final HashMap<String, String> props = Maps.newHashMap();
+
+        props.put(PublisherServiceUsingActiveMq.KEY_VM_TRANSPORT_URL, "tcp://localhost:61616");
+        service.init(props);
+    }
+
+    @Test
+    public void publish() throws Exception {
+
+        final URL resource = Resources.getResource(getClass(), "InteractionDto.xml");
+        final String s = Resources.toString(resource, Charsets.UTF_8);
+        final InteractionDto dto = JaxbUtil.fromXml(new StringReader(s), InteractionDto.class);
+
+        service.republish(dto);
+    }
+}
+----
+
+[NOTE]
+====
+Configure the "e2e" system property using -De2e, otherwise the test is a no-op.
+====
+
+== Monitor
+
+http://hawt.io/[hawt.io] is a standalone webapp that acts as a _client_ to monitor other applications.
+It has built in support for both ActiveMQ and Camel.
+The Camel webapp provides access to hawt.io because it is configured to also start the https://jolokia.org/[Jolokia] gateway servlet.
+
+Download hawt.io from https://github.com/hawtio/hawtio/releases[here] and start using:
+
+[source]
+----
+java -jar hawtio-app-2.0.2.jar --port 7070
+----
+
+Open up a browser at http://localhost:7070/hawtio/[]
+
+Connect to running camel-webapp instance by connecting to URL http://localhost:8080//api/jolokia[].
+
+
+
