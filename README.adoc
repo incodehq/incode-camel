@@ -27,7 +27,7 @@ Run using:
 mvn jetty:run
 ----
 
-This set up the `HelloWorldProcessor`:
+This sets up the `HelloWorldProcessor`:
 
 [source,java]
 ----
@@ -59,9 +59,7 @@ in a camel route:
 
         <camel:to uri="stream:out"/>
     </route>
-
     ...
-
 </camelContext>
 ----
 
@@ -124,7 +122,7 @@ java -jar hawtio-app-2.0.2.jar --port 7070
 
 Open up a browser at http://localhost:7070/hawtio/[]
 
-Connect to running camel-webapp instance by connecting to URL http://localhost:8080//api/jolokia[].
+Connect to running camel-webapp instance by registering a connection to http://localhost:8080//api/jolokia[].
 
 
 
